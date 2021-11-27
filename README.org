@@ -71,3 +71,119 @@ class BooksSpider(scrapy.Spider):
         yield {}
         yield scrapy.Request(next_url, callback=self.parse_book)
 #+END_SRC
+* selector
+#+BEGIN_SRC python
+# create selector from text
+from scrapy.selector import Selector
+text = '''
+<html>
+  <body>
+    <h1>Hello  World</h1>
+    <h1>Hello Scrapy</h1>
+
+    <b>Hello python</b>
+
+    <ul>
+      <li>C++</li>
+      <li>Java</li>
+      <li>Python</li>
+    </ul>
+  </body>
+</html>
+'''
+selector = Selector(text=text)
+
+# create selector from response
+from scrapy.selector import Selector
+from scrapy.http import HtmlResponse
+
+body = '''
+<html>
+  <body>
+    <h1>Hello  World</h1>
+    <h1>Hello Scrapy</h1>
+
+    <b>Hello python</b>
+
+    <ul>
+      <li>C++</li>
+      <li>Java</li>
+      <li>Python</li>
+    </ul>
+  </body>
+</html>
+'''
+
+response = HtmlResponse(url='http://www.example.com', body=body, encoding='utf8')
+selector = Selector(response=response)
+response.selector # TextResponse property "selector"
+
+response.xpath('.//h1/text()').extract() # call selector.xpath inside (defined in TextResponse)
+response.css('li::text').extract()       # call selector.css inside   (defined in TextResponse)
+#+END_SRC
+
+#+BEGIN_SRC python
+# selection
+selector_list = selector.xpath('//h1') # select all <h1> in document
+# output
+#
+# [<Selector xpath='.//h1' data='<h1>Hello  World</h1>'>,
+#  <Selector xpath='.//h1' data='<h1>Hello Scrapy</h1>'>]
+
+for sel in selector_list:
+    print(sel.xpath('./text()'))
+# output
+#
+# [<Selector xpath='./text()' data='Hello  World'>]
+# [<Selector xpath='./text()' data='Hello Scrapy'>]
+
+selector_list.xpath('./text()')
+# output
+#
+# [<Selector xpath='./text()' data='Hello  World'>,
+#  <Selector xpath='./text()' data='Hello Scrapy'>]
+
+selector.xpath('.//ul').css('li').xpath('./text()')
+# output
+#
+# [<Selector xpath='./text()' data='C++ '>,
+#  <Selector xpath='./text()' data='Java'>,
+#  <Selector xpath='./text()' data='Python'>]
+#+END_SRC
+
+#+BEGIN_SRC python
+# extract data using extract
+
+sl = selector.xpath('.//li')
+sl[0].extract()
+# output:   '<li>C++</li>'
+
+sl = selector.xpath('.//li/text()')
+sl[0].extract()
+# output:   'C++'
+
+sl = selector.xpath('.//li/text()')
+sl.extract()
+# output:   ['C++', 'Java', 'Python']
+
+sl = selector.xpath('.//b')
+sl.extract_first()
+# output:   '<b>Hello Python</b>'
+#+END_SRC
+
+#+BEGIN_SRC python
+# extract data using re
+text = '''
+<ul>
+  <li>Python 学习手册 <b>价格: 99.00 元</b></li>
+  <li>Python 核心编程 <b>价格: 88.00 元</b></li>
+  <li>Python 基础教程 <b>价格: 80.00 元</b></li>
+</ul>
+'''
+selector = Selector(text=text)
+selector.xpath('.//li/b/text()')
+selector.xpath('.//li/b/text()').extract()
+# output:  ['价格: 99.00 元', '价格: 88.00 元', '价格: 80.00 元']
+selector.xpath('.//li/b/text()').re('\d+\.\d+')
+# output:  ['99.00', '88.00', '80.00']
+#+END_SRC
