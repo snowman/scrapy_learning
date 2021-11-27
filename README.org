@@ -48,3 +48,26 @@ reponse.text = response.body.decode(response.encoding)
 # 在构造Request对象时, 可将要传递给parse函数 的 信息 通过meta参数 传入;
 # parse 函数处理响应时, 通过response.meta将信息取出
 #+END_SRC
+* workflow
+实现 一个 Spider 子类 的 过程, 很像 是 完成 一系列 填空题:
+
+Scrapy 框架 提出 以下 问题, 让 用户 在 Spider 子类 中 作答:
+1. 爬虫 从 哪个 或 哪些 页面 开始 爬取?
+2. 对于 一个 已下载 的 页面, 提取 其中 的 哪些 数据?
+3. 爬取 完 当前 页面 后, 接下来 爬取 哪个 或 哪些 页面?
+
+#+BEGIN_SRC python
+class BooksSpider(scrapy.Spider):
+    start_urls = ['http://books.toscrape.com/']
+
+    def start_requests(self):
+        for url in start_urls:
+            yield scrapy.Request(url,
+                                 callback=self.parse_book,
+                                 headers={'User-Agent': 'Mozilla/5.0'},
+                                 dont_filter=True)
+
+    def parse_book(response):
+        yield {}
+        yield scrapy.Request(next_url, callback=self.parse_book)
+#+END_SRC
