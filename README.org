@@ -187,3 +187,92 @@ selector.xpath('.//li/b/text()').extract()
 selector.xpath('.//li/b/text()').re('\d+\.\d+')
 # output:  ['99.00', '88.00', '80.00']
 #+END_SRC
+* XPath
+| expression  | description                        |
+|-------------+------------------------------------|
+| /           | root (not node)                    |
+| .           | current node                       |
+| ..          | parent node                        |
+| ELEMENT     | All children nodes named ELEMENT   |
+| //ELEMENT   | All descendant nodes named element |
+| *           | All nodes                          |
+| text()      | text node                          |
+| @ATTR       | select node's attribute named ATTR |
+| @*          | select node's all attributes       |
+| [predicate] | specify node                       |
+
+#+BEGIN_SRC python
+from scrapy.selector import Selector
+from scrapy.http import HtmlResponse
+
+body = '''
+<html>
+  <head>
+    <base href="http://example.com/" />
+    <title>Example website</title>
+  </head>
+
+  <body>
+    <div id="images">
+      <a href="image1.html">Name: Image 1 <br /><img class="thumb" src="image1.jpg" /><strong>tail</strong></a>
+      <a href="image2.html">Name: Image 2 <br /><img class="thumb" src="image2.jpg" /></a>
+      <a href="image3.html">Name: Image 3 <br /><img src="image3.jpg" /></a>
+      <a href="image4.html">Name: Image 4 <br /><img src="image4.jpg" /></a>
+      <a href="image5.html">Name: Image 5 <br /><img src="image5.jpg" /></a>
+    </div>
+  </body>
+</html>
+'''
+
+response = HtmlResponse(url='http://www.example.com', body=body, encoding='utf8')
+
+# ipython
+# run xpath_demo.py
+
+## selector example
+response.xpath('/html')
+response.xpath('/html/head')
+response.xpath('/html/body/div/a')
+
+## selector //
+response.xpath('//a')
+response.xpath('/html/body//img')
+
+## selector text()
+response.xpath('//a/text()').extract()
+
+## selector *
+response.xpath('/html/*')
+response.xpath('/html/body/div//*')
+response.xpath('//div/*/img')
+
+## attribute selector
+response.xpath('//img/@src')
+response.xpath('//@href')
+
+## index is 1-based
+response.xpath('//a[1]/img/@*')
+
+## selector current
+sel = response.xpath('//a')[0]
+sel.xpath('//img')  # wrong, this will select at the root, so the images is not single
+sel.xpath('.//img') # correct
+
+## selector parent
+response.xpath('//img/..')
+
+## selector predicate
+response.xpath('//a[3]')
+response.xpath('//a[last()]')
+response.xpath('//a[position()<=3]')
+response.xpath('//div[@id]')
+response.xpath('//div[@id="images"]')
+
+response.xpath('//img[contains(@class, "thumb")]')
+
+## xpath function
+response.xpath('string(/html/body/div/a)').extract()
+# return ['Name: Image 1 tail']
+response.xpath('/html/body/div/a[1]//text()').extract()
+# return ['Name: Image 1 ', 'tail']
+#+END_SRC
