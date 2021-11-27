@@ -1,3 +1,6 @@
+* run
+** Start spider
+$ scrapy crawl books -o books.csv
 * concept
 如果 把 框架 中 的 组件 比作 人体 的 各个 器官,
 Request 和 Response 对象 是 血液, Item 则 是 代谢产物
