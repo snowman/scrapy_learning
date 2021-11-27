@@ -32,8 +32,19 @@ class BookItem(Item):
 # >>> book2
 # {}
 #
+# >>> from itemadapter import ItemAdapter
+# >>> list(ItemAdapter(book2).keys())
+# []
+# >>> list(ItemAdapter(book2).field_names())
+# ['name', 'price']
+#
 # >>> book2['name'] = 'Life of Pi'
+# >>> list(ItemAdapter(book2).keys())
+# ['name']
 # >>> book2['price'] = 32.5
+# >>> list(ItemAdapter(book2).keys())
+# ['name', 'price']
+#
 # >>> book2
 # {'name': 'Life of Pi', 'price': 32.5}
 
