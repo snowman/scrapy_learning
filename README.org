@@ -276,3 +276,61 @@ response.xpath('string(/html/body/div/a)').extract()
 response.xpath('/html/body/div/a[1]//text()').extract()
 # return ['Name: Image 1 ', 'tail']
 #+END_SRC
+* CSS
+| expression          | description                | example           |
+|---------------------+----------------------------+-------------------|
+| *                   | all elements               | *                 |
+| E                   | element named E            | p                 |
+| E1, E2              | elements named E1 or E2    | div, p            |
+| E1 E2               | E1's descendant element E2 | div p             |
+| E1 > E2             | E1's children E2           | div > p           |
+| E1 + E2             | E1's sibling E2            | p + strong        |
+| .class_name         | attribute class            | .info             |
+| #id                 | attribute id               | #main             |
+| [ATTR]              | attirubte named ATTR       | [href]            |
+| [ATTR=VALUE]        | attribute ATTR with value  | [method=POST]     |
+| [ATTR~=VALUE]       | attribute include value    | [class~=clearfix] |
+| E:nth-child(n)      |                            |                   |
+| E:nth-last-child(n) |                            |                   |
+| E:first-child       |                            |                   |
+| E:last-child        |                            |                   |
+| E:empty             | element with nothing       | div:empty         |
+| E::text             | element text node          |                   |
+
+#+BEGIN_SRC python
+from scrapy.selector import Selector
+from scrapy.http import HtmlResponse
+
+body = '''
+<html>
+  <head>
+    <base href="http://example.com/" />
+    <title>Example website</title>
+  </head>
+  <body>
+    <div id="images-1" style="width: 1230px">
+      <a href="image1.html">Name: Image 1 <br /><img src="image1.jpg" /></a>
+      <a href="image2.html">Name: Image 2 <br /><img src="image2.jpg" /></a>
+      <a href="image3.html">Name: Image 3 <br /><img src="image3.jpg" /></a>
+    </div>
+    <div id="images-2" class="small">
+      <a href="image4.html">Name: Image 4 <br /><img src="image4.jpg" /></a>
+      <a href="image5.html">Name: Image 5 <br /><img src="image5.jpg" /></a>
+    </div>
+  </body>
+</html>
+'''
+
+response = HtmlResponse(url='http://www.example.com', body=body, encoding='utf8')
+
+response.css('img')
+response.css('base, title')
+response.css('div img')
+response.css('body > div')
+response.css('[style]')
+response.css('[id=images-1]')
+response.css('div > a:nth-child(1)')
+response.css('div:nth-child(2) > a:nth-child(1)')
+response.css('div:first-child > a:last-child')
+response.css('a::text')
+#+END_SRC
