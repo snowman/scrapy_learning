@@ -55,3 +55,6 @@ class BookItem(Item):
 # 45.0
 # >>> list(book.items())
 # [('price', 45.0), ('name', 'Needful Things')]
+
+class ForeignBookItem(BookItem):
+    translator = Field()
