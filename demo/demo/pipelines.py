@@ -42,3 +42,20 @@ class PriceConverterPipeline(object):
 
     # from_crawler(cls, crawler)
     # 创建 Item Pipeline 对象时 回调. 通常 用于 读取 配置 crawler.settings, 根据 配置 创建 Item Pipeline 对象
+
+# 以 书名 作为 主键 (实际 应以 ISBN 编号 为 主键, 但是 仅 爬取 了 书名 和 价格) 进行 去重
+from scrapy.exceptions import DropItem
+
+class DuplicatesPipeline(object):
+    def __init__(self):
+        self.book_set = set()
+
+    def process_item(self, item, spider):
+        name = item['name']
+
+        if name in self.book_set:
+            raise DropItem("Duplicate book found: %s" % item)
+
+        self.book_set.add(name)
+
+        return item

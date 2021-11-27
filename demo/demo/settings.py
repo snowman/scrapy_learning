@@ -66,7 +66,8 @@ ROBOTSTXT_OBEY = True
 # process small first (like sort asc)
 ITEM_PIPELINES = {
     'demo.pipelines.DemoPipeline': 1,
-    'demo.pipelines.PriceConverterPipeline': 2
+    'demo.pipelines.DuplicatesPipeline': 2,
+    'demo.pipelines.PriceConverterPipeline': 3
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
