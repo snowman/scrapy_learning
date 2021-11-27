@@ -1,3 +1,50 @@
 * concept
 如果 把 框架 中 的 组件 比作 人体 的 各个 器官,
 Request 和 Response 对象 是 血液, Item 则 是 代谢产物
+* API
+#+BEGIN_SRC python
+req = Request(url[,
+              callback,
+              method='GET',
+              headers,
+              body,
+              cookies,
+              meta,
+              encoding='utf-8',
+              priority=0,
+              dont_filter=False,
+              errback])
+
+import scrapy
+request = scrapy.Request('http://books.toscrape.com/')
+request2 = scrapy.Request('http://quotes.toscrape.com/', callback=self.parseItem)
+
+在实际应用中, 我们几乎只调用Request的构造器创建对象,
+但也可以根据需求访问Request对象的属性, 常用的有以下几个:
+
+- url
+- method
+- headers
+- body
+- meta
+
+这些属性和构造器参数相对应
+#+END_SRC
+
+#+BEGIN_SRC python
+# response has 3 types: TextResponse, HtmlResponse, XmlResponse
+#
+# HtmlResponse
+#
+# property:
+# - url, status, headers, body, text, encoding, request, meta, selector, xpath, css, urljoin
+
+response.headers.get('Content-Type')
+response.headers.getlist('Set-Cookie')
+
+reponse.text = response.body.decode(response.encoding)
+
+# resonse.meta 即response.request.meta
+# 在构造Request对象时, 可将要传递给parse函数 的 信息 通过meta参数 传入;
+# parse 函数处理响应时, 通过response.meta将信息取出
+#+END_SRC
