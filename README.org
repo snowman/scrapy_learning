@@ -336,6 +336,7 @@ response.css('div > a:nth-child(1)')
 response.css('div:nth-child(2) > a:nth-child(1)')
 response.css('div:first-child > a:last-child')
 response.css('a::text')
+response.css('a::attr(href)')
 #+END_SRC
 * exporter
 ** exporter class
@@ -422,3 +423,42 @@ scrapy/utils/conf.py
   def feed_complete_default_values_from_settings
 * ask
 ** [[https://stackoverflow.com/questions/34485789/scrapy-csv-output-without-header][Python - Scrapy: CSV output without header - Stack Overflow]]
+* scrapy shell
+$ scrapy shell url
+
+request           -- 最近一次 Request 对象
+response          -- 最近一次 Response 对象
+fetch(req_or_url) -- 传入 Request 对象 url 字符串, 调用后 更新 变量 request 和 response
+view(response)    -- 在 浏览器 显示 response 页面
+
+可能 在 很多 时候, 使用 view 函数 打开 的 页面 和 在 浏览器 直接 输入 url 打开 的 页面 看起来 是 一样 的,
+但 需要 知道 的 是, 前者 是 由 Scrapy 爬虫 下载 的 页面,
+而 后者 是 由 浏览器 下载 的 页面,
+有时 它们 是 不同 的.
+在 进行 页面 分析 时, 使用 view 函数 更加 可靠
+** detail
+$ scrapy shell http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html
+% view(response)
+
+% sel = response.css('div.product_main')
+% title = sel.xpath('./h1/text()').extract_first()
+'A Light in the Attic'
+% price = sel.css('p.price_color::text').extract_first()
+'￡51.77'
+% rate_level = sel.css('p.star-rating::attr(class)').re_first('star-rating ([A-Za-z]+)')
+'Three'
+
+% sel = response.css('table.table.table-striped')
+% product_id = sel.xpath('(.//tr)[1]/td/text()').extract_first()
+'a897fe39b1053632'
+% in_stock = sel.xpath('(.//tr)[last()-1]/td/text()').re_first('\((\d+) available\)')
+'22'
+% comment_count = sel.xpath('(.//tr)[last()]/td/text()').extract_first()
+'0'
+** index page (continued from detail above)
+% fetch('http://books.toscrape.com/')
+% view(response)
+%
+% from scrapy.linkextractors import LinkExtractor
+% le = LinkExtractor(restrict_css='article.product_pod')
+% le.extract_links(response)

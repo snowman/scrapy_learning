@@ -1,3 +1,10 @@
+# Pros
+#
+# 1. Remove duplicate urls
+# 2. Automatically join urls
+# 3. Provide more granularity to control urls like pattern, domains, xpath, css, tags, attrs, callback function
+# 4. More readability & clean code
+
 from scrapy.http import HtmlResponse
 
 html1 = open('example1.html', encoding='utf-8').read()
