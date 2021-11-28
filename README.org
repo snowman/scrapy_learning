@@ -337,3 +337,88 @@ response.css('div:nth-child(2) > a:nth-child(1)')
 response.css('div:first-child > a:last-child')
 response.css('a::text')
 #+END_SRC
+* exporter
+** exporter class
+check scrapy/exporters.py class inherited from BaseItemExporter
+
+JsonItemExporter
+JsonLinesItemExporter
+CsvItemExporter
+XmlItemExporter
+
+PickleItemExporter
+MarshalItemExporter
+
+PprintItemExporter
+PythonItemExporter
+** export
+在 导出 数据 时, 需向 Scrapy 爬虫 提供 以下 信息:
+1. 导出 文件 路径
+2. 导出 数据 格式
+
+可以 通过 以下 两种 方式, 指定 爬虫 如何 导出 数据:
+1. 通过 命令行 参数 指定 (command line)
+   # -t csv is inferred from books.csv, so could be ommited
+   $ scrapy crawl books -o books.csv
+   # -t json is inferred from books.json, so could be ommited
+   $ scrapy crawl books -o books.json
+
+   $ scrapy crawl books -t csv -o books.data
+
+   # when export files, you can use variable: %(name)s and %(time)s
+   # %(name)s  -->  spider name
+   # %(time)s  -->  file create time
+
+   $ scrapy crawl books -o 'export_data/%(name)s/%(time)s.csv'
+   $ scrapy crawl games -o 'export_data/%(name)s/%(time)s.csv'
+   $ scrapy crawl news  -o 'export_data/%(name)s/%(time)s.csv'
+   $ scrapy crawl books -o 'export_data/%(name)s/%(time)s.csv'
+
+   $ tree export_data
+   export_data/
+   ├── books
+   │  ├── 2017-03-06T02-31-57.csv
+   │  └── 2017-06-07T04-45-13.csv
+   ├── games
+   │  └── 2017-04-05T01-43-01.csv
+   └── news
+      └── 2017-05-06T09-44-06.csv
+
+   --output-format=FORMAT, -t FORMAT
+     format to use for dumping items
+
+   Defined Location:
+
+     scrapy/settings/default_settings.py
+       FEED_EXPORTERS_BASE
+
+     user/settings.py
+       FEED_EXPORTERS
+
+2. 通过 配置文件 指定 (settings)
+     user/settings.py
+       FEED_URI             = 'export_data/%(name)s.data'
+       FEED_FORMAT          = 'csv'
+       FEED_EXPORT_ENCODING = 'utf-8'
+       FEED_EXPORT_FIELDS   = [ 'name', 'author', 'price' ] # order matters
+       FEED_EXPORTERS       = { 'excel': 'your_project_name.my_exporters.ExcelItemExporter' }
+** define
+#+BEGIN_SRC python
+class JsonItemExporter(BaseItemExporter):
+    def __init__(self, file, **kwargs):
+        pass
+
+    def start_exporting(self):
+        pass
+
+    def finish_exporting(self):
+        pass
+
+    def export_item(self, item):
+        raise NotImplementedError
+#+END_SRC
+** default settings
+scrapy/utils/conf.py
+  def feed_complete_default_values_from_settings
+* ask
+** [[https://stackoverflow.com/questions/34485789/scrapy-csv-output-without-header][Python - Scrapy: CSV output without header - Stack Overflow]]

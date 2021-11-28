@@ -94,3 +94,6 @@ ITEM_PIPELINES = {
 # mongodb settings
 MONGO_DB_URI  = 'mongodb://192.168.1.105:27017/'
 MONGO_DB_NAME = 'liushuo_scrapy_data'
+
+# exporter
+FEED_EXPORTERS = {'excel': 'demo.my_exporters.ExcelItemExporter'}
