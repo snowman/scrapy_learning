@@ -65,8 +65,13 @@ from scrapy.item import Item
 import pymongo
 
 class MongoDBPipeline(object):
-    DB_URI = 'mongodb://localhost:27017/'
-    DB_NAME = 'scrapy_data'
+    @classmethod
+    def from_crawler(cls, crawler):
+        cls.DB_URI = crawler.settings.get('MONGO_DB_URI',
+                                          'mongodb://localhost:27017/')
+        cls.DB_NAME = crawler.settings.get('MONGO_DB_NAME', 'scrapy_data')
+
+        return cls()
 
     def open_spider(self, spider):
         self.client = pymongo.MongoClient(self.DB_URI)

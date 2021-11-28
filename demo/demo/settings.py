@@ -90,3 +90,7 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# mongodb settings
+MONGO_DB_URI  = 'mongodb://192.168.1.105:27017/'
+MONGO_DB_NAME = 'liushuo_scrapy_data'
