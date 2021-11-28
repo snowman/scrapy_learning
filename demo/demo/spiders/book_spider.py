@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from ..items import BookItem
+from scrapy.linkextractors import LinkExtractor
 
 
 class BooksSpider(scrapy.Spider):
@@ -27,12 +28,22 @@ class BooksSpider(scrapy.Spider):
             yield book
 
         # 提取链接
-        # 下一页的 url 在 ul.pager > li.next > a 里面
+        # 下一页 url: ul.pager > li.next > a
         # 例如: <li class="next"><a href="catalogue/page-2.html">next</a></li>
         next_url = response.css("ul.pager li.next a::attr(href)").extract_first()
 
         if next_url:
             # 如果找到下一页的 URL, 得到绝对路径, 构造新的 Request 对象
             next_url = response.urljoin(next_url)
+
+            yield scrapy.Request(next_url, callback=self.parse)
+
+        # LinkExtractor
+        # 下一页 url: ul.pager > li.next > a
+        le = LinkExtractor(restrict_css='ul.pager li.next')
+        links = le.extract_links(response)
+
+        if links:
+            next_url = links[0].url
 
             yield scrapy.Request(next_url, callback=self.parse)
