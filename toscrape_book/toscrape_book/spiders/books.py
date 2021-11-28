@@ -7,6 +7,7 @@ class BooksSpider(scrapy.Spider):
     name = 'books'
     allowed_domains = ['books.toscrape.com']
     start_urls = ['http://books.toscrape.com/']
+    count = 0
 
     def parse(self, response):
         le = LinkExtractor(restrict_css='article.product_pod h3')
@@ -20,6 +21,8 @@ class BooksSpider(scrapy.Spider):
             yield scrapy.Request(next_url, callback=self.parse)
 
     def parse_book(self, response):
+        self.count += 1
+        print("Book {:0>4}".format(self.count))
         book = BookDetailItem()
 
         sel = response.css('div.product_main')
