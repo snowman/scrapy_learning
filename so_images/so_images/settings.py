@@ -87,6 +87,13 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+# when run "$ scrapy crawl images", it would NOT download image, so check the log output.
+#
+# --> 'log_count/WARNING': 1,
+#
+# WARNING: Disabled ImagesPipeline: ImagesPipeline requires installing Pillow 4.0.0 or later
+#
+# $ pip install Pillow
 ITEM_PIPELINES = {
     'scrapy.pipelines.images.ImagesPipeline': 1,
 }
