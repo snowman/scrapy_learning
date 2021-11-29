@@ -10,3 +10,8 @@ class WebscrapingItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
+
+class UserItem(scrapy.Item):
+    first_name = scrapy.Field()
+    last_name = scrapy.Field()
+    email = scrapy.Field()
