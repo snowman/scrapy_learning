@@ -444,6 +444,12 @@ scrapy/utils/conf.py
   def feed_complete_default_values_from_settings
 * ask
 ** [[https://stackoverflow.com/questions/34485789/scrapy-csv-output-without-header][Python - Scrapy: CSV output without header - Stack Overflow]]
+** [[https://blog.csdn.net/yimingsilence/article/details/52119720][scrapy 爬虫 出现 Forbidden by robots.txt - William Zhao's notes]]
+scrapy default_settings.py:
+  ROBOTSTXT_OBEY
+
+project settings.py:
+  ROBOTSTXT_OBEY
 * scrapy shell
 $ scrapy shell url
 
