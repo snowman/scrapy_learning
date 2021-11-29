@@ -86,3 +86,8 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+ITEM_PIPELINES = {
+    'scrapy.pipelines.images.ImagesPipeline': 1,
+}
+IMAGES_STORE = 'download_images'
