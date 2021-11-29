@@ -462,3 +462,87 @@ $ scrapy shell http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/ind
 % from scrapy.linkextractors import LinkExtractor
 % le = LinkExtractor(restrict_css='article.product_pod')
 % le.extract_links(response)
+* pipeline
+- FilesPipeline
+- ImagesPipeline
+
+我们 可以 将 这 两个 Item Pipeline 看作 特殊 的 下载器,
+用户 使用 时,
+只 需要 通过 item 的 一个 特殊 字段,
+将 要 下载文件 或 图片 的 url 传递 给 它们,
+它们 会 自动 将 文件 或 图片 下载 到 本地,
+并 将 下载结果 信息 存入 item 的 另一个特殊字段,
+以便 用户 在 导出文件 中 查阅
+
+** FilesPipeline
+#+BEGIN_SRC html
+<html>
+  <body>
+    <div>
+      <a href="/book/sg.pdf">下载《三国演义》</a>
+      <a href="/book/shz.pdf">下载《水浒传》</a>
+      <a href="/book/hlm.pdf">下载《红楼梦》</a>
+      <a href="/book/xyj.pdf">下载《西游记》</a>
+    </div>
+  </body>
+</html>
+#+END_SRC
+
+1. In file settings.py enable "FilesPipeline", before any other Item Pipelines normally
+
+     ITEM_PIPELINES = { 'scrapy.pipelines.files.FilesPipeline': 1 }
+     FILES_STORE    =   '/home/liushuo/Download/scrapy'
+
+2. Put download urls into -> item['file_urls']
+     #+BEGIN_SRC python
+class DownloadBookSpider(scrapy.Spider):
+    def parse(response):
+        # define field file_urls in DownloadBookItem
+        item = DownloadBookItem()
+
+        item['file_urls'] = []
+
+        for url in response.xpath('//a/@href').extract():
+            download_url = response.urljoin(url)
+
+            item['file_urls'].append(download_url)
+
+        yield item
+      #+END_SRC
+3. 当 FilesPipeline 下载 完 item['file_urls'] 中 所有 文件 后,
+   会将 各文件 的 下载结果 收集 到 另一个 列表, 赋给 item 的 files 字段 item['files']
+   下载结果 包括 以下 内容:
+     1. path:     文件 下载 到 本地 的 路径 (相对于 FILES_STORE 的 相对路径) (URL's sha1sum)
+     2. checksum: 文件 的 校验和 (md5)
+     3. url:      文件 的 url 地址
+     4. status:   文件 下载状态, 比如 downloaded
+** ImagesPipeline
+settings.py:
+
+     ITEM_PIPELINES = { 'scrapy.pipelines.images.ImagesPipeline: 1 }
+     IMAGES_STORE   =   '/home/liushuo/Download/scrapy'
+
+     1. Provide generate thumbnail:
+
+       IMAGES_THUMBS = {
+         'small': (50, 50),
+         'big': (270, 270),
+       }
+
+       Example Downloaded images:
+
+         [IMAGES_STORE]/full/63bbfea82b8880ed33cdb762aa11fab722a90a24.jpg
+         [IMAGES_STORE]/thumbs/small/63bbfea82b8880ed33cdb762aa11fab722a90a24.jpg
+         [IMAGES_STORE]/thumbs/big/63bbfea82b8880ed33cdb762aa11fab722a90a24.jpg
+
+     2. Filter out small image:
+
+          IMAGES_MIN_WIDTH = 110
+          IMAGES_MIN_HEIGHT = 110
+
+          开启 该 功能 后, 如果 下载 了 一张 105×200 图片, 该 图片 就会 被 抛弃掉,
+          因为 宽度 不符合 标准
+
+Item Field:
+     image_urls (download urls)
+     images     (downloaded images)
