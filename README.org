@@ -52,6 +52,7 @@ reponse.text = response.body.decode(response.encoding)
 # parse 函数处理响应时, 通过response.meta将信息取出
 #+END_SRC
 * workflow
+** narrate
 实现 一个 Spider 子类 的 过程, 很像 是 完成 一系列 填空题:
 
 Scrapy 框架 提出 以下 问题, 让 用户 在 Spider 子类 中 作答:
@@ -74,6 +75,26 @@ class BooksSpider(scrapy.Spider):
         yield {}
         yield scrapy.Request(next_url, callback=self.parse_book)
 #+END_SRC
+** from commit
+$ scrapy shell url
+% view(response)
+% link extraction
+% fetch(link[0].url)
+%
+% view(response)
+# Chrome Inspector copy selector then modify selector to more specific,
+# like keep id selector, add classname to last node
+% response.css()
+
+# history commit workflow
+scrapy        : new project (toscrape_book)
+toscrape_book : add spider (books)
+toscrape_book : update items.py (add BookDetailItem)
+toscrape_book : update spider (books)
+toscrapy_book : update spider (print counter)
+toscrapy_book : add custom export fields
+toscrapy_book : add BookPipeline
+toscrapy_book : sample result
 * selector
 #+BEGIN_SRC python
 # create selector from text
