@@ -11,3 +11,13 @@ from itemadapter import ItemAdapter
 class MatplotlibExamplesPipeline:
     def process_item(self, item, spider):
         return item
+
+from scrapy.pipelines.files import FilesPipeline
+from urllib.parse import urlparse
+from os.path import basename, dirname, join
+
+class MyFilesPipeline(FilesPipeline):
+    def file_path(self, request, response=None, info=None):
+        path = urlparse(request.url).path
+
+        return join(basename(dirname(path)), basename(path))
