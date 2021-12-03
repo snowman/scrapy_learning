@@ -65,7 +65,7 @@ class BooksSpider(scrapy.Spider):
     start_urls = ['http://books.toscrape.com/']
 
     def start_requests(self):
-        for url in start_urls:
+        for url in self.start_urls:
             yield scrapy.Request(url,
                                  callback=self.parse_book,
                                  headers={'User-Agent': 'Mozilla/5.0'},
