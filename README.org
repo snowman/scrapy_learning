@@ -210,6 +210,8 @@ selector.xpath('.//li/b/text()').extract()
 # output:  ['价格: 99.00 元', '价格: 88.00 元', '价格: 80.00 元']
 selector.xpath('.//li/b/text()').re('\d+\.\d+')
 # output:  ['99.00', '88.00', '80.00']
+selector.xpath('.//li/b/text()').re_first('\d+\.\d+')
+# output:  '99.00'
 #+END_SRC
 * XPath
 | expression  | description                        |
