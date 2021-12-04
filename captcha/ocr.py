@@ -107,3 +107,12 @@ class CaptchaLoginSpider(scrapy.Spider):
             return res["showapi_res_body"]["Result"]
 
         return ""
+
+    def get_captcha_by_user(self, data):
+        # 人工识别
+        img = Image.open(BytesIO(data))
+        img.show()
+        captcha = input("输入验证码：")
+        img.close()
+
+        return captcha
