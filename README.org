@@ -575,3 +575,133 @@ settings.py:
 Item Field:
      image_urls (download urls)
      images     (downloaded images)
+* cookie
+** FormRequest
+# This is the login page, same as form action's url
+$ scrapy shell http://example.webscraping.com/user/login
+
+*** 1
+>>> sel = response.xpath('//div[@style]/input')
+>>> sel
+[
+ <Selector xpath='//div[@style]/input' data='<input name="_next" type="hidden" value='>,
+ <Selector xpath='//div[@style]/input' data='<input name="_formkey" type="hidden" val'>,
+ <Selector xpath='//div[@style]/input' data='<input name="_formname" type="hidden" va'>
+]
+
+>>> fd = dict(zip(sel.xpath('./@name').extract(),
+                  sel.xpath('./@value').extract()))
+>>> fd
+{
+ '_formkey'  : '432dcb0c-0d85-443f-bb50-9644cfeb2f2b',
+ '_formname' : 'login',
+ '_next'     : '/'
+}
+
+>>> fd['email'] = 'liushuo@webscraping.com'
+>>> fd['password'] = '12345678'
+
+>>> fd
+{
+ '_formkey'  : '432dcb0c-0d85-443f-bb50-9644cfeb2f2b',
+ '_formname' : 'login',
+ '_next'     : '/',
+ 'email'     : 'liushuo@webscraping.com',
+ 'password'  : '12345678'
+}
+
+>>> from scrapy.http import FormRequest
+>>> form_url = 'http://example.webscraping.com/user/login'
+>>> request = FormRequest(form_url, formdata=fd)
+*** 2
+# auto fill in "_formkey" and "_formname", "_next" fields
+>>> fd = { 'email': 'liushuo@webscraping.com', 'password': '12345678' }
+>>> request = FormRequest.from_response(response, formdata=fd)
+
+>>> fetch(request)
+[scrapy] DEBUG: Redirecting (303) to <GET http://example.webscraping.com/> from
+<POST http://example.webscraping.com/user/login>
+[scrapy] DEBUG: Crawled (200) <GET http://example.webscraping.com/> (referer: None)
+
+显然, Scrapy 发送 的 第 2 个 GET 请求, 携带 了 第 1 个 POST 请求 获取 的 Cookie 信息,
+为 请求 附加 Cookie 信息 的 工作 是 由 Scrapy 内置 的 下载 中间件 CookiesMiddleware 自动 完成 的
+
+>>> 'Welcome Liu' in response.text
+True
+>>> view(response)
+
+>>> fetch('http://example.webscraping.com/user/profile') #下载用户个人信息页面
+[scrapy] DEBUG: Crawled (200) <GET http://example.webscraping.com/user/profile>
+>>> view(response)
+
+>>> keys = response.css('table label::text').re('(.+):')
+>>> keys
+['First name', 'Last name', 'E-mail']
+
+>>> values = response.css('table td.w2p_fw::text').extract()
+>>> values
+['Liu', 'Shuo', 'liushuo@webscraping.com']
+
+>>> dict(zip(keys, values))
+* Captcha types
+from basic to advanced
+** 1. static file content with fixed file name includes answer
+name="img_path" value="123.png"
+name="captcha" value="123"
+
+Crack it:
+================
+(car (split-string img_path
+                   "\\."))
+** 2. static file content with fixed file name but NOT includes answer
+name="img_path" value="01.png"
+name="captcha" value="123"
+
+(The filename can be cached)
+
+Crack it:
+================
+{
+  "01.png": "123",
+  "02.png": "456"
+}
+** 3. static file content with random file name
+name="img_path" value="vW2LtMJGAh0X.png"
+name="captcha" value="123"
+
+The image data can also be cached. (by using data like checksum md5, filesize, dimension etc)
+
+Crack it:
+=================
+[
+  {
+    md5: "202cb962ac59075b964b07152d234b70",
+    captcha: "123"
+  },
+  ...
+]
+** 4. dynamic file content with random file name
+name="img_path" value="xJvqCceXccI.png"
+name="captcha" value="456"
+
+This can not be cached,
+but can bypass by using Computer Vision technology like AI machine learning.
+
+Crack it: (FAKE)
+================
+By using same "img_path" and correct "captcha" value everytime when sending request?
+
+seems there is a bug?
+
+no, the file content is dynamic, everytime you access the image by using same URL,
+the image return is different.
+
+Just think the img_path's value an image entry point, and server should return
+some value marking the image content to the client, and sends back to server
+(sounds like a cookie job, right?)
+
+And there is no need the "img_path"'s value anymore.
+
+Just use "captcha.png" as entry point and sends back image and quiz-cookie to client,
+and client sends quiz-cookie and capcha's answer to server,
+finally server delete the quiz once it's match the answer.
