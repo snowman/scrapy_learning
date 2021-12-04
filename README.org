@@ -705,3 +705,8 @@ And there is no need the "img_path"'s value anymore.
 Just use "captcha.png" as entry point and sends back image and quiz-cookie to client,
 and client sends quiz-cookie and capcha's answer to server,
 finally server delete the quiz once it's match the answer.
+
+===================
+wait for minute, there could be exist cookies before requesting captcha img.
+The cookies is generated when first request the index HTML page.
+And request captcha img with index page's cookie.
