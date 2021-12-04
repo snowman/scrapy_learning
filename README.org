@@ -624,7 +624,8 @@ $ scrapy shell http://example.webscraping.com/user/login
 [scrapy] DEBUG: Crawled (200) <GET http://example.webscraping.com/> (referer: None)
 
 显然, Scrapy 发送 的 第 2 个 GET 请求, 携带 了 第 1 个 POST 请求 获取 的 Cookie 信息,
-为 请求 附加 Cookie 信息 的 工作 是 由 Scrapy 内置 的 下载 中间件 CookiesMiddleware 自动 完成 的
+为 请求 附加 Cookie 信息 的 工作 是 由 Scrapy 内置 的 下载 中间件 CookiesMiddleware 自动 完成 的,
+just like browsing web page(fetch request) with browser!!
 
 >>> 'Welcome Liu' in response.text
 True
