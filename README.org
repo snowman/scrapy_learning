@@ -711,3 +711,163 @@ finally server delete the quiz once it's match the answer.
 wait for minute, there could be exist cookies before requesting captcha img.
 The cookies is generated when first request the index HTML page.
 And request captcha img with index page's cookie.
+* Code
+** CookiesMiddleware
+#+BEGIN_SRC python
+import os
+import six
+import logging
+from collections import defaultdict
+
+from scrapy.exceptions import NotConfigured
+from scrapy.http import Response
+from scrapy.http.cookies import CookieJar
+from scrapy.utils.python import to_native_str
+
+logger = logging.getLogger(__name__)
+
+
+# scrapy.downloadermiddlewares.cookies
+class CookiesMiddleware(object):
+    """This middleware enables working with sites that need cookies"""
+
+    def __init__(self, debug=False):
+        self.jars = defaultdict(CookieJar)
+        self.debug = debug
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        if not crawler.settings.getbool('COOKIES_ENABLED'):
+            raise NotConfigured
+
+        return cls(crawler.settings.getbool('COOKIES_DEBUG'))
+
+    def process_request(self, request, spider):
+        if request.meta.get('dont_merge_cookies', False):
+            return
+
+        cookiejarkey = request.meta.get('cookiejar')
+        jar = self.jars[cookiejarkey]
+        cookies = self._get_request_cookies(jar, request)
+
+        for cookie in cookies:
+            jar.set_cookie_if_ok(cookie, request)
+
+            # set Cookie header
+            request.headers.pop('Cookie', None)
+            jar.add_cookie_header(request)
+            self._debug_cookie(request, spider)
+
+    def process_response(self, request, response, spider):
+        if request.meta.get('dont_merge_cookies', False):
+            return response
+
+        # extract cookies from Set-Cookie and drop invalid/expired cookies
+        cookiejarkey = request.meta.get('cookiejar')
+        jar = self.jars[cookiejarkey]
+        jar.extract_cookies(response, request)
+
+        self._debug_set_cookie(response, spider)
+
+        return response
+
+    def _debug_cookie(self, request, spider):
+        if self.debug:
+            cl = [
+                to_native_str(c, errors='replace')
+                for c in request.headers.getlist('Cookie')
+            ]
+
+            if cl:
+                cookies = '\n'.join('Cookie: {}\n'.format(c) for c in cl)
+                msg = 'Sending cookies to: {}\n{}'.format(request, cookies)
+                logger.debug(msg, extra={'spider': spider})
+
+    def _debug_set_cookie(self, response, spider):
+        if self.debug:
+            cl = [
+                to_native_str(c, errors='replace')
+                for c in response.headers.getlist('Set-Cookie')
+            ]
+
+            if cl:
+                cookies = '\n'.join('Set-Cookie: {}\n'.format(c) for c in cl)
+                msg = 'Received cookies from: {}\n{}'.format(response, cookies)
+                logger.debug(msg, extra={'spider': spider})
+
+    def _format_cookie(self, cookie):
+        # build cookie string
+        cookie_str = '%s=%s' % (cookie['name'], cookie['value'])
+
+        if cookie.get('path', None):
+            cookie_str += '; Path=%s' % cookie['path']
+        if cookie.get('domain', None):
+            cookie_str += '; Domain=%s' % cookie['domain']
+
+        return cookie_str
+
+    def _get_request_cookies(self, jar, request):
+        if isinstance(request.cookies, dict):
+            cookie_list = [
+                {'name': k, 'value': v} for k, v in six.iteritems(request.cookies)
+            ]
+        else:
+            cookie_list = request.cookies
+
+        cookies = [self._format_cookie(x) for x in cookie_list]
+        headers = {'Set-Cookie': cookies}
+        response = Response(request.url, headers=headers)
+
+        return jar.make_cookies(response, request)
+#+END_SRC
+
+#+BEGIN_SRC python
+# specify different cookiejar
+Request(url, meta={'cookiejar': 'account1'})
+Request(url, meta={'cookiejar': 'account2'})
+#+END_SRC
+** Middleware
+#+BEGIN_SRC python
+import browsercookie
+from scrapy.downloadermiddlewares.cookies import CookiesMiddleware
+
+class BrowserCookiesMiddleware(CookiesMiddleware):
+  def __init__(self, debug=False):
+      super().__init__(debug)
+
+      self.load_browser_cookies()
+
+  def load_browser_cookies(self):
+      # Load Chrome's Cookie
+      jar = self.jars['chrome']
+      chrome_cookiejar = browsercookie.chrome()
+
+      for cookie in chrome_cookiejar:
+        jar.set_cookie(cookie)
+
+      # Load Firefox's Cookie
+      jar = self.jars['firefox']
+      firefox_cookiejar = browsercookie.firefox()
+
+      for cookie in firefox_cookiejar:
+        jar.set_cookie(cookie)
+#+END_SRC
+
+#+BEGIN_SRC python
+# 伪装成常规浏览器
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) Chrome/42.0.2311.90 Safari/537.36'
+# 用BrowserCookiesMiddleware替代CookiesMiddleware启用前者, 关闭后者
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': None,
+    'browser_cookie.middlewares.BrowserCookiesMiddleware': 701,
+}
+#+END_SRC
+
+#+BEGIN_SRC python
+# 注意, 为了 使用 项目 中 的 配置, 需要 在 项目 目录 下 启动scrapy shell命令:
+$ scrapy shell
+>>> from scrapy import Request
+>>> url = 'https://www.zhihu.com/settings/profile'
+>>> fetch(Request(url, meta={'cookiejar': 'chrome'}))
+>>> view(response)
+#+END_SRC
